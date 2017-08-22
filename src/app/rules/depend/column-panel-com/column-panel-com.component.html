@@ -1,0 +1,288 @@
+<div class="row rule-table-panel">
+  <div class="tb-head">
+    <strong>当前位置：</strong><a href="javascript:void(0);" routerLink="/rules/db">数据库配置</a> >> <a href="javascript:void(0);" routerLink="/rules/table">[<b>{{_rule?.matchingName}}</b>]Table配置</a> >>
+    <a href="javascript:void(0);">[<b>{{_table?.sTname}}.{{_table?.source_table_name}}-{{_table?.tTname}}.{{_table?.target_table_name}}</b>]Column配置</a>
+  </div>
+  <div class="tb-body">
+    <div class="col-md-12 tb-body-banner">
+       <div class="pull-right">
+           <button class="btn btn-sm btn-primary" type="button" (click)="addCondition()">
+             <input type="checkbox" [(ngModel)]="condition"> 过滤条件
+           </button>
+           <button class="btn btn-sm btn-primary" type="button" (click)="addStrategy()">
+             <input type="checkbox" [(ngModel)]="strategy"> 比对策略
+           </button>
+       </div>
+       <div class="clearfix"></div>
+    </div>
+    <div class="col-md-5 tb-body-left">
+      <h4 class="txt-align-center">未配置column</h4>
+      <ul class="table-desc list-inline">
+        <li>源库</li>
+        <li>目标库</li>
+        <li>
+          <input type="text" placeholder="列名搜索" #sourceTable (keyup)="searchColumn(sourceTable.value,1)" maxlength="50">
+        </li>
+        <li>
+          <input type="text" placeholder="列名搜索" #targetTable (keyup)="searchColumn(targetTable.value,2)" maxlength="50">
+        </li>
+      </ul>
+      <div class="clearfix">
+        <div class="tb-list-left">
+          <p>列名</p>
+          <ul>
+            <li *ngFor="let col of sourceColumns;trackBy:colTrack" [class.active]="selSourceCol.column_name===col.column_name">
+              <label (click)="selSourceCol=col"><input type="radio" name="tbLeft">{{col.column_name}}</label>
+            </li>
+            <li *ngIf="!loading1 && sourceColumns.length===0" class="txt-align-center">
+                 No Columns!
+            </li>
+            <li *ngIf="loading1" class="txt-align-center">
+                Loading......
+            </li>
+          </ul>
+        </div>
+        <div class="tb-list-left">
+          <p>列名</p>
+          <ul>
+            <li *ngFor="let col of targetColumns;trackBy:colTrack" [class.active]="selTargetCol.column_name===col.column_name">
+              <label (click)="selTargetCol=col"><input type="radio" name="tbRight">{{col.column_name}}</label>
+            </li>
+            <li *ngIf="!loading2 && targetColumns.length===0" class="txt-align-center">
+              No Columns!
+            </li>
+            <li *ngIf="loading2" class="txt-align-center">
+              Loading......
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-1">
+      <div class="tb-md-zw"></div>
+      <div class="tb-md">
+        <button class="btn btn-sm btn-primary" type="button" (click)="appendToRules()" [disabled]="appending">{{appendBtn}}</button>
+        <button class="btn btn-sm btn-info" type="button" (click)="getAutoColumns()">自动匹配</button>
+        <button class="btn btn-sm btn-danger" (click)="deleteRightColumns()">删除 <<</button>
+      </div>
+    </div>
+    <div class="col-md-6 tb-body-right">
+      <h4 class="txt-align-center">已配置的column</h4>
+      <ul class="table-desc list-inline">
+        <li>源库</li>
+        <li>目标库</li>
+        <li>
+          <input type="text" placeholder="列名搜索" #colSource (keyup)="searchExist(colSource.value,colTarget.value)">
+        </li>
+        <li>
+          <input type="text" placeholder="列名搜索" #colTarget (keyup)="searchExist(colSource.value,colTarget.value)">
+          <a class="glyphicon glyphicon-repeat reset-search" (click)="colSource.value=colTarget.value='';searchExist('','');"></a>
+        </li>
+      </ul>
+      <div class="td-body-right-list">
+        <div class="rules-list">
+          <table class="table">
+            <colgroup>
+              <col style="width: 10%">
+              <col style="width: 35%">
+              <col style="width: 35%">
+              <col style="width: 20%">
+            </colgroup>
+            <tr>
+              <td><input type="checkbox" title="全选" [(ngModel)]="ckAll" (change)="checkAll()"></td>
+              <td>源端</td>
+              <td>目标端</td>
+              <td>操作</td>
+            </tr>
+            <tr *ngFor="let col of confColumns;trackBy:colTrack;">
+              <td><input type="checkbox" [(ngModel)]="col.checked"></td>
+              <td>{{col.column_name_1}}</td>
+              <td>{{col.column_name_2}}</td>
+              <td>
+                <button class="btn btn-sm btn-danger" (click)="removeColumn(col)">删除</button>
+              </td>
+            </tr>
+            <tr *ngIf="!loading3 && confColumns.length===0">
+                <td colspan="4" class="txt-align-center">No Data!</td>
+            </tr>
+            <tr *ngIf="loading3">
+              <td colspan="4" class="txt-align-center">Loading......</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+  </div>
+</div>
+<!-- 自动匹配弹窗 -->
+<div bsModal #viewModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-rule-md">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">请选择要自动匹配的列</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="viewModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="apply-to-other">
+          <h5>schema: {{_table.sTname + '-' + _table.source_table_name}} - {{_table.tTname +'-'+_table.target_table_name}}</h5>
+          <div class="rules-list">
+            <table class="table table-responsive">
+              <colgroup>
+                <col style="width: 10%">
+                <col style="width: 45%">
+                <col style="width: 45%">
+              </colgroup>
+              <tbody>
+              <tr class="schema-bar">
+                <td><input type="checkbox" title="全选" [(ngModel)]="tableAll" (change)="selectTableAll()"></td>
+                <td>源端COLUMN</td>
+                <td>目标端COLUMN</td>
+              </tr>
+              </tbody>
+              <tbody>
+              <tr *ngFor="let tb of autoColumnList;trackBy:ruleTrack">
+                <td><input type="checkbox" [(ngModel)]="tb.checked" (change)="selectTableOne(tb)"></td>
+                <td>{{tb.column_name_1}}</td>
+                <td>{{tb.column_name_2}}</td>
+              </tr>
+              <tr *ngIf="!loadingCol && autoColumnList.length === 0">
+                <td colspan="3" class="txt-align-center"><b>No Data!</b></td>
+              </tr>
+              <tr *ngIf="loadingCol">
+                <td colspan="3" class="txt-align-center"><b>Loading......</b></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <div class="pull-right">
+          <button class="btn btn-sm btn-primary" type="button" [disabled]="autoColumnList.length===0 || isSaving" (click)="saveAutoList()">保存</button>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 过滤条件弹窗 -->
+<div bsModal #filterModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" (onHidden)="closeFilterModal()">
+  <div class="modal-dialog modal-md modal-rule-sm">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">添加过滤条件</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="filterModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <!--<form #colFilter="ngForm" novalidate>-->
+      <div class="modal-body">
+          <div class="dccp-column-list">
+             <ul class="list-group-item">
+               <li>源端过滤条件：</li>
+               <li><input type="text" class="form-control" name="sourceRule" [(ngModel)]="filterRule.sourceRule" maxlength="60"></li>
+               <li>目标端过滤条件：</li>
+               <li><input type="text" class="form-control" name="targetRule" [(ngModel)]="filterRule.targetRule" maxlength="60"></li>
+             </ul>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <div class="pull-left">
+           <button class="btn btn-info btn-sm" type="button" (click)="applyToOtherTables('condition')">应用到其他表</button>
+        </div>
+        <div class="pull-right">
+           <button class="btn btn-sm btn-primary" type="button" (click)="saveFilterRule()">保存</button>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 比对策略弹窗 -->
+<div bsModal #strategyModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" (onHidden)="closeStrategyModal()" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-rule-sm">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">设置比对策略</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="strategyModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <form #strategyFilter="ngForm" novalidate>
+        <div class="modal-body">
+          <div class="dccp-column-list">
+             <div class="match-strategy-head">
+               <label><input type="radio" name="detail" value="detail" (click)="nowStrategy=fastRule.match='detail'" [checked]="fastRule.match==='detail'"> 详细比对</label>
+               <label><input type="radio" name="detail" value="fast" (click)="nowStrategy=fastRule.match='fast'" [checked]="fastRule.match==='fast'"> 快速比对</label>
+             </div>
+             <div class="match-strategy-body" *ngIf="fastRule.match==='fast'">
+               <ul class="list-group-item">
+                 <li>源端：</li>
+                 <li><input [(ngModel)]="fastRule.sourceRule" [typeahead]="fastDefaultRules" typeaheadOptionField="name"
+                            class="form-control" placeholder="自定义策略或者搜索策略,例: sum(*)、count(*)" name="fastSource" type="text" maxlength="60"></li>
+                 <li>目标端：</li>
+                 <li><input [(ngModel)]="fastRule.targetRule" [typeahead]="fastDefaultRules" typeaheadOptionField="name"
+                            class="form-control" placeholder="自定义策略或者搜索策略,例: sum(*)、count(*)" name="fastTarget" type="text" maxlength="60"></li>
+               </ul>
+             </div>
+             <div class="match-strategy-body" *ngIf="fastRule.match==='detail'">
+                  <label>规则配置</label>
+                  <table class="table table-responsive">
+                    <colgroup>
+                      <col style="width: 30%">
+                      <col style="width: 50%">
+                      <col style="width: 20%">
+                    </colgroup>
+                     <tr>
+                       <td>MD5规则：</td>
+                       <td>
+                         <input class="form-control" type="number" name="detailMd5" [(ngModel)]="detailRule.md5" required maxlength="10">
+                         <div class="error-tip">
+                           （注：当字段长度超过设置值时，启用MD5查询，0代表不启用）
+                         </div>
+                       </td>
+                       <td>
+                         <button class="btn btn-info btn-sm" type="button" [disabled]="strategyFilter.form.invalid" (click)="applyToOtherTables('md5')">应用到其他表</button>
+                       </td>
+                     </tr>
+                    <tr>
+                      <td>列过滤：</td>
+                      <td>
+                        <input class="form-control" type="number" name="detailMaxLen" [(ngModel)]="detailRule.maxLen" required maxlength="10">
+                        <div class="error-tip">
+                          （注：当字段长度超过设置值时，将被过滤，0代表不启用）
+                        </div>
+                      </td>
+                      <td>
+                        <button class="btn btn-info btn-sm" type="button" [disabled]="strategyFilter.form.invalid" (click)="applyToOtherTables('maxLen')">应用到其他表</button>
+                      </td>
+                    </tr>
+                  </table>
+             </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="pull-left" *ngIf="fastRule.match==='fast'">
+            <button class="btn btn-info btn-sm" type="button" [disabled]="strategyFilter.form.invalid" (click)="applyToOtherTables(nowStrategy)">应用到其他表</button>
+          </div>
+          <div class="pull-right">
+            <button class="btn btn-sm btn-primary" type="button" [disabled]="strategyFilter.form.invalid" (click)="saveStrategyRule()">保存</button>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- 应用到其他表modal -->
+<app-apply-to-other #applyOther [tableList]="_ruleList" (saveArr)="saveStrategy($event)"></app-apply-to-other>

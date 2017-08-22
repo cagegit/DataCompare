@@ -1,0 +1,32 @@
+<!--The whole content below can be removed with the new code.-->
+<div class="container">
+   <div class="row">
+     <div class="col-md-12 sj-top-banner">
+          <div class="pull-left">
+               <div class="logo">
+                 <img src="assets/dccp_logo.png">
+               </div>
+          </div>
+          <div class="pull-right">
+               <h2>{{companyName}}</h2>
+          </div>
+          <div class="clearfix"></div>
+     </div>
+     <div class="col-md-2">
+          <ul class="sj-left-nav">
+            <li><a routerLink="/links" routerLinkActive="active">
+              <img src="assets/dccp_links.png">
+              连接管理</a></li>
+            <li><a routerLink="/rules" routerLinkActive="active">
+              <img src="assets/dccp_rules.png">
+              规则管理</a></li>
+            <li class="border-line"><a routerLink="/jobs" routerLinkActive="active">
+              <img src="assets/dccp_jobs.png">
+              任务管理</a></li>
+          </ul>
+     </div>
+     <div class="col-md-10 dccp-main-outlet">
+          <router-outlet> </router-outlet>
+     </div>
+   </div>
+</div>

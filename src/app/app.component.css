@@ -1,0 +1,41 @@
+.sj-top-banner {
+  height: 95px;
+  background-color: #729EFE;
+}
+.sj-top-banner h2 {
+  color: #fff;
+  line-height: 95px;
+  margin: 0;
+  font-size: x-large;
+}
+.sj-top-banner .logo {
+  border: 0;
+  padding-top: 20%;
+}
+.sj-left-nav {
+  margin: 0 -15px;
+  padding: 0;
+  width: 100%;
+}
+.sj-left-nav li a {
+  height: 140px;
+  width: 100%;
+  display: inline-block;
+  text-align: center;
+  background-color: #E9F6FF;
+  text-decoration: none;
+  font-weight: bold;
+  color: #59BEDB;
+  font-size: 16px;
+}
+.sj-left-nav li a.active {
+  background-color: #C5EBFA;
+}
+.sj-left-nav li a img {
+  display: block;
+  width: 53px;
+  margin: 30px auto 5px;
+}
+.sj-left-nav .border-line {
+  border-top: 1px solid #C5EBFA;
+}

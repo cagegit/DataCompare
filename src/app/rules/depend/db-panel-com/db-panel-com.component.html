@@ -1,0 +1,62 @@
+<!-- 配置数据库 -->
+<div class="db-panel">
+  <div class="tb-head">
+    <strong>当前位置：</strong><a href="javascript:void(0);">数据库配置</a>
+  </div>
+  <div class="tb-body">
+    <!--<div class="col-md-12">-->
+      <h3 class="db-panel-title txt-align-center">请选择要配置的数据库</h3>
+      <form #dbForm="ngForm" novalidate>
+      <table class="table table-responsive table-db">
+        <tr>
+          <td align="right">匹配识别名：</td>
+          <td>
+            <div class="form-group">
+              <input class="form-control input-wd" #flag="ngModel" name="flag" [(ngModel)]="dbInfo.flag" required maxlength="30">
+              <div *ngIf="flag.errors && (flag.dirty || flag.touched)" class="alert alert-danger input-wd">
+                <div [hidden]="!flag.errors.required">
+                   识别名不能为空
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td align="right">源端数据库：</td>
+          <td>
+            <select class="form-control input-wd" name="sourceDb" [(ngModel)]="dbInfo.sourceDb" [disabled]="!isCreate">
+              <option *ngFor="let db of sourceDbList;trackBy:trackById" [ngValue]="db">{{db.flag}}</option>
+              <!--<option value="bbc">bbc</option>-->
+              <!--<option value="bbs">bbs</option>-->
+              <!--<option value="fos">fos</option>-->
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td align="right">目标端数据库：</td>
+          <td>
+            <select class="form-control input-wd" name="targetDb" [(ngModel)]="dbInfo.targetDb" [disabled]="!isCreate">
+              <option *ngFor="let db of targetDbList;trackBy:trackById" [ngValue]="db">{{db.flag}}</option>
+              <!--<option value="bbc">bbc</option>-->
+              <!--<option value="bbs">bbs</option>-->
+              <!--<option value="fos">fos</option>-->
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td align="right">备注：</td>
+          <td>
+            <textarea class="form-control input-wd" name="remark" [(ngModel)]="dbInfo.remark" maxlength="40"></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td align="right" colspan="2">
+            <button class="btn btn-sm btn-primary btn-next" type="button" (click)="saveDbInfo()" [disabled]="dbForm.form.invalid">下一步</button>
+          </td>
+        </tr>
+      </table>
+      </form>
+      <div class="clearfix"></div>
+    <!--</div>-->
+  </div>
+</div>

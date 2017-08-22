@@ -1,0 +1,222 @@
+<div class="match-count-list" >
+  <table #table class="table table-responsive">
+    <thead>
+      <tr>
+        <th>源库表</th>
+        <th>目标表</th>
+        <th>源端进度</th>
+        <th>目标进度</th>
+        <th>当前状态</th>
+        <th>开始时间</th>
+        <th>结束时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let item of matchCountList;trackBy:matchTrack" [class.ex-error]="item.isDone==='danger'">
+          <td>{{item.t_name_1}}</td>
+          <td>{{item.t_name_2}}</td>
+          <td><b [style.color]="(item.status===500 && item.t1_pro !== item.t1_count)?'red':''">{{item.t1_pro+'/'+item.t1_count}}</b></td>
+          <td><b [style.color]="(item.status===500 && item.t2_pro !== item.t2_count)?'red':''">{{item.t2_pro+'/'+item.t2_count}}</b></td>
+          <td>{{changeToTxt(item.status)}}</td>
+          <td>{{item.starttime| slice:0:-5}}</td>
+          <td>{{item.endtime| slice:0:-5}}</td>
+          <td>
+            <button class="btn btn-info btn-sm" type="button" [disabled]="item.status<1" (click)="showDetail(item)">详情</button>
+            <button class="btn btn-primary btn-sm" type="button" *ngIf="item.status===2" [disabled]="isMatching" (click)="startTableMatch(item)">启动</button>
+            <button class="btn btn-danger btn-sm" type="button" *ngIf="item.status===1 || item.status===4" [disabled]="isMatching" (click)="stopTableMatch(item)">停止</button>
+          </td>
+        </tr>
+        <tr *ngIf="!loadingData && matchCountList.length === 0">
+          <td class="txt-align-center" colspan="8">No Data！</td>
+        </tr>
+        <tr *ngIf="loadingData">
+          <td class="txt-align-center" colspan="8">Loading......</td>
+        </tr>
+    </tbody>
+  </table>
+</div>
+<!-- 比对详情界面-->
+<div bsModal #matchDModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" (onHidden)="closeModel()">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">{{detailTitle}}</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="matchDModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="row match-detail-panel">
+          <div class="col-md-6">
+            <h4>{{_rule?.sourceName+'.'+_table?.schema_name_1}}</h4>
+            <div class="detail-list">
+              <table class="table table-responsive">
+                <thead>
+                  <tr>
+                    <th style="width: 10%"><input type="checkbox" title="全选" [(ngModel)]="sAll" (change)="selectAll1()"></th>
+                    <th style="width: 15%">序号</th>
+                    <th style="width: 55%">RowID</th>
+                    <th style="width: 20%">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of sourceRow;trackBy:rowTrack">
+                    <td style="width: 10%"><input type="checkbox" [(ngModel)]="item.checked" (change)="selectOne1(item)"></td>
+                    <td style="width: 15%">{{item.number}}</td>
+                    <td style="width: 55%">{{item.row_id}}</td>
+                    <td style="width: 20%"><a href="javascript:void(0);" class="btn btn-sm btn-primary" (click)="asyncRowId(item)">同步</a></td>
+                  </tr>
+                  <tr *ngIf="!loading1 && sourceRow.length===0">
+                     <td colspan="4" class="txt-align-center">No Data!</td>
+                  </tr>
+                  <tr *ngIf="loading1">
+                    <td colspan="4" class="txt-align-center">Loading......</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="page-select">
+                <a href="javascript:void(0);" class="btn-primary" (click)="preSourcePage()"> < </a>
+                <input type="number" size="10" #sourceP (keyup)="changeSourcePage(sourceP.value, 1)" (change)="changeSourcePage(sourceP.value, 1)" maxlength="10"> / {{sourcePage.total}}
+                <a href="javascript:void(0);" class="btn-primary" (click)="nextSourcePage()"> > </a>
+              </div>
+              <div class="page-operation">
+                <button class="btn btn-sm btn-primary" type="button" [disabled]="sourceRow.length===0" (click)="asyncList(0)">同步所选</button>
+                <button class="btn btn-sm btn-primary" type="button" [disabled]="sourceRow.length===0" (click)="asyncList(1)">同步全部</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h4>{{_rule?.targetName+'.'+_table?.schema_name_2}}</h4>
+            <div class="detail-list">
+              <table class="table table-responsive">
+                <thead>
+                  <tr>
+                    <th style="width: 10%"><input type="checkbox" title="全选" [(ngModel)]="tAll" (change)="selectAll2()"></th>
+                    <th style="width: 15%">序号</th>
+                    <th style="width: 55%">RowID</th>
+                    <th style="width: 20%">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of targetRow;trackBy:rowTrack">
+                    <td style="width: 10%"><input type="checkbox" [(ngModel)]="item.checked" (change)="selectOne2(item)"></td>
+                    <td style="width: 15%">{{item.number}}</td>
+                    <td style="width: 55%">{{item.row_id}}</td>
+                    <td style="width: 20%"><a href="javascript:void(0);" class="btn btn-sm btn-danger" (click)="removeRowId(item)">删除</a></td>
+                  </tr>
+                  <tr *ngIf="!loading2 && targetRow.length===0">
+                    <td colspan="4" class="txt-align-center">No Data!</td>
+                  </tr>
+                  <tr *ngIf="loading2">
+                    <td colspan="4" class="txt-align-center">Loading......</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="page-select">
+                <a href="javascript:void(0);" class="btn-primary" (click)="preTargetPage()"> < </a>
+                <input type="number" size="10" #targetP (keyup)="changeSourcePage(targetP.value, 2)" (change)="changeSourcePage(targetP.value, 2)" maxlength="10"> / {{targetPage.total}}
+                <a href="javascript:void(0);" class="btn-primary" (click)="nextTargetPage()"> > </a>
+              </div>
+              <div class="page-operation">
+                <button class="btn btn-sm btn-danger" type="button" [disabled]="targetRow.length===0" (click)="deleteList(0)">删除所选</button>
+                <button class="btn btn-sm btn-danger" type="button" [disabled]="targetRow.length===0" (click)="deleteList(1)">删除全部</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 比对进度界面-->
+<div bsModal #matchPro="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">同步进度条</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="matchPro.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <progressbar [max]="process.max" [value]="process.dynamic">
+            <span style="color:white; white-space:nowrap;">{{process.dynamic}} / {{process.max}}</span>
+        </progressbar>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 快速比对详情界面-->
+<div bsModal #fastMatch="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" (onHidden)="closeFastModel()" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">快速比对详情</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="fastMatch.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="row match-detail-panel">
+          <div class="col-md-6">
+            <h4>{{_rule?.sourceName+'.'+_table?.schema_name_1}}</h4>
+            <div class="detail-list">
+              <table class="table table-responsive">
+                <thead>
+                  <tr>
+                    <th style="width: 70%">比对语句</th>
+                    <th style="width: 30%">源端比对结果</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of sourceFastRow">
+                    <td style="width: 70%"><code style="color: #333">{{item.fastSql}}</code></td>
+                    <td style="width: 30%">{{item.fastResult}}</td>
+                  </tr>
+                  <tr *ngIf="!loading3 && sourceFastRow.length===0">
+                    <td colspan="2">No Data!</td>
+                  </tr>
+                  <tr *ngIf="loading3">
+                    <td colspan="2">Loading......</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h4>{{_rule?.targetName+'.'+_table?.schema_name_2}}</h4>
+            <div class="detail-list">
+              <table class="table table-responsive">
+                <thead>
+                  <tr>
+                    <th style="width: 70%">比对语句</th>
+                    <th style="width: 30%">目标比对结果</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of targetFastRow">
+                    <td style="width: 70%"><code style="color: #333">{{item.fastSql}}</code></td>
+                    <td style="width: 30%">{{item.fastResult}}</td>
+                  </tr>
+                  <tr *ngIf="!loading4 && targetFastRow.length===0">
+                    <td colspan="2">No Data!</td>
+                  </tr>
+                  <tr *ngIf="loading4">
+                    <td colspan="2">Loading......</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

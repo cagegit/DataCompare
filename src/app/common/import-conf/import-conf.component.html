@@ -1,0 +1,60 @@
+<!-- 导入配置弹窗 -->
+<div bsModal #importModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" (onHidden)="closeModal()">
+  <div class="modal-dialog modal-md modal-rule-md">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">导入配置</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="importModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="import-config">
+            <div class="alert alert-info">
+                请输入表名以逗号或者换行分割
+            </div>
+            <div class="import-config-body clearfix">
+               <ul>
+                 <li>源端</li>
+                 <li>目标端</li>
+                 <li>
+                   <textarea class="text-area" #sourceData (keyup)="dataChange(sourceData.value, 1)" maxlength="1000"></textarea>
+                 </li>
+                 <li>
+                   <textarea class="text-area" #targetData (keyup)="dataChange(targetData.value, 2)" maxlength="1000"></textarea>
+                 </li>
+                 <li>
+                   <div class="import-pre">
+                     <p>源端预览：</p>
+                     <div class="pre-code">
+                       {{this.sourceColumns | json}}
+                     </div>
+                   </div>
+                 </li>
+                 <li>
+                   <div class="import-pre">
+                     <p>目标端预览：</p>
+                     <div class="pre-code">
+                       {{this.targetColumns | json}}
+                     </div>
+                   </div>
+                 </li>
+               </ul>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="pull-left">
+          <button class="btn btn-sm btn-info" type="button" (click)="clearData()">清空数据</button>
+        </div>
+        <div class="pull-right">
+          <button class="btn btn-sm btn-warning" type="button" (click)="importModal.hide()" style="margin-right: 5px">取消</button>
+          <button class="btn btn-sm btn-primary" type="button" (click)="saveToArr()" [disabled]="isSaving">保存</button>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+</div>

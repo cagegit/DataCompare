@@ -1,0 +1,51 @@
+<div class="link-menu">
+  <button type="button" class="btn btn-primary" (click)="createRule();">新建规则</button>
+</div>
+<div class="rules-info-list">
+  <table class="table table-responsive common-table">
+    <thead>
+      <tr>
+        <th style="width: 25%">规则标识</th>
+        <th style="width: 30%">规则备注</th>
+        <th style="width: 15%">上次运行时间</th>
+        <th style="width: 30%">管理</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of ruleList;">
+        <td style="width: 25%">{{item.matchingName}}</td>
+        <td style="width: 30%">{{item.remark}}</td>
+        <td style="width: 15%">{{item.startTime | slice:0:-5}}</td>
+        <td style="width: 30%">
+          <button class="btn btn-sm btn-warning" type="button" [disabled]="item.status>=1 && item.status<3" (click)="editRule(item)">修改</button>
+          <button class="btn btn-sm btn-danger" type="button" (click)="deleteRule(item)">删除</button>
+          <button class="btn btn-sm btn-info" type="button" [disabled]="item.status<1" (click)="matchCount(item)">查看</button>
+          <button class="btn btn-sm btn-primary" type="button" [disabled]="isMatching" *ngIf="item.status<1" (click)="startToMatch(item)">启动比对</button>
+          <button class="btn btn-sm btn-danger" type="button" [disabled]="isMatching" *ngIf="item.status>=1 && item.status<3" (click)="stopToMatch(item)">停止比对</button>
+          <button class="btn btn-sm btn-warning" type="button" [disabled]="isMatching"  *ngIf="item.status>=3" (click)="restartToMatch(item)">重新比对</button>
+        </td>
+      </tr>
+      <tr *ngIf="ruleList.length===0">
+        <td colspan="4" class="txt-align-center">No Data!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<!-- 查看添加规则弹窗 -->
+<div bsModal #viewModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" (onHidden)="closeModel()">
+  <div class="modal-dialog modal-lg modal-rule-lg">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">{{ruleTitle}}</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="viewModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+          <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>

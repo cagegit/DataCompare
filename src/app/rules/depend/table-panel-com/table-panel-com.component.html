@@ -1,0 +1,203 @@
+<div class="row rule-table-panel">
+  <div class="tb-head">
+    <strong>当前位置：</strong><a href="javascript:void(0);" (click)="pathToDb()">数据库配置</a> >> <a href="javascript:void(0);">[<b>{{_rule?.matchingName}}</b>]Table配置</a>
+  </div>
+  <div class="tb-body">
+    <div class="col-md-5 tb-body-left">
+        <h4 class="txt-align-center">未配置table</h4>
+        <ul class="table-desc list-inline">
+          <li>源库SCHEMA</li>
+          <li>目标库SCHEMA</li>
+          <li>
+            <select name="sourceSchema" [(ngModel)]="selSourceSchema" (change)="changeSourceSchema()">
+              <option class="osf" *ngFor="let sm of sourceSchemas;trackBy:schemaTrack" [ngValue]="sm">{{sm.user_name}}</option>
+            </select>
+          </li>
+          <li>
+            <select name="targetSchema" [(ngModel)]="selTargetSchema" (change)="changeTargetSchema()">
+              <option class="osf" *ngFor="let sm of targetSchemas;trackBy:schemaTrack" [ngValue]="sm">{{sm.user_name}}</option>
+            </select>
+          </li>
+          <li>
+            <input type="text" placeholder="表名搜索" #sourceTable (keyup)="search(sourceTable.value, 1)">
+          </li>
+          <li>
+            <input type="text" placeholder="表名搜索" #targetTable  (keyup)="search(targetTable.value, 2)">
+          </li>
+        </ul>
+        <div class="clearfix">
+          <div class="tb-list-left">
+            <p>表名</p>
+            <ul>
+              <li *ngFor="let tb of sourceTables;trackBy:tableTrack" [class.active]="tb.table_name===selSourceTable.table_name" >
+                <label (click)="selSourceTable=tb"><input type="radio" name="tbLeft">{{tb.table_name}}</label>
+              </li>
+              <li *ngIf="!loading1 && sourceTables.length===0" class="txt-align-center">
+                  No Tables!
+              </li>
+              <li *ngIf="loading1" class="txt-align-center">
+                  Loading......
+              </li>
+            </ul>
+          </div>
+          <div class="tb-list-left">
+            <p>表名</p>
+            <ul>
+              <li *ngFor="let tb of targetTables;trackBy:tableTrack" [class.active]="tb.table_name===selTargetTable.table_name">
+                <label (click)="selTargetTable=tb"><input type="radio" name="tbRight">{{tb.table_name}}</label>
+              </li>
+              <li *ngIf="!loading2 && targetTables.length===0" class="txt-align-center">
+                No Tables!
+              </li>
+              <li *ngIf="loading2" class="txt-align-center">
+                Loading......
+              </li>
+            </ul>
+          </div>
+        </div>
+    </div>
+    <div class="col-md-1">
+         <div class="tb-md-zw"></div>
+         <div class="tb-md">
+           <button class="btn btn-sm btn-primary" type="button" (click)="appendToRules()" [disabled]="appending">{{appendBtn}}</button>
+           <button class="btn btn-sm btn-info" type="button" (click)="getAutoMatchList()">自动匹配</button>
+           <button class="btn btn-sm btn-danger" type="button" (click)="removeRightTables()">删除 <<</button>
+           <br>
+           <br>
+           <br>
+           <br>
+           <button class="btn btn-sm btn-info" type="button" (click)="importCustomTables()">导入配置</button>
+         </div>
+    </div>
+    <div class="col-md-6 tb-body-right">
+      <h4 class="txt-align-center">已配置的table</h4>
+      <ul class="table-desc list-inline">
+        <li>源库</li>
+        <li>目标库</li>
+        <li><input type="text" placeholder="schema搜索" #schema1 (keyup)="searchRule(schema1.value,schema2.value,table1.value,table2.value)" maxlength="50"></li>
+        <li><input type="text" placeholder="schema搜索" #schema2 (keyup)="searchRule(schema1.value,schema2.value,table1.value,table2.value)" maxlength="50"></li>
+        <li>
+          <input type="text" placeholder="表名搜索" #table1 (keyup)="searchRule(schema1.value,schema2.value,table1.value,table2.value)" maxlength="50">
+        </li>
+        <li>
+          <input type="text" placeholder="表名搜索" #table2 (keyup)="searchRule(schema1.value,schema2.value,table1.value,table2.value)" maxlength="50">
+          <a class="glyphicon glyphicon-repeat reset-search" (click)="schema1.value=schema2.value=table1.value=table2.value='';searchRule('','','','');"></a>
+        </li>
+      </ul>
+      <div class="td-body-right-list">
+        <div class="rules-list">
+          <table class="table">
+            <colgroup>
+              <col style="width: 10%">
+              <col style="width: 20%">
+              <col style="width: 20%">
+              <col style="width: 20%">
+              <col style="width: 30%">
+            </colgroup>
+            <tbody>
+              <tr style="background-color:#F3F6F8">
+                <td><input type="checkbox" title="全选" [(ngModel)]="ruleAll" (change)="selectRuleAll()"></td>
+                <td>类型</td>
+                <td>源端</td>
+                <td>目标端</td>
+                <td>操作</td>
+              </tr>
+            </tbody>
+            <tbody *ngFor="let schema of ruleList;trackBy: ruleTrack">
+              <tr>
+                <td><input type="checkbox" [(ngModel)]="schema.checked" (change)="schemaCheck(schema)"></td>
+                <td align="right"><a href="javascript:void(0);" (click)="schema.isShow=!schema.isShow">
+                  <i class="glyphicon" style="vertical-align: middle" [ngClass]="{'glyphicon-triangle-right':schema.isShow, 'glyphicon-triangle-bottom':!schema.isShow}"></i></a>schema</td>
+                <td>{{schema.sName}}</td>
+                <td>{{schema.tName}}</td>
+                <td>
+                  <button class="btn btn-sm btn-danger" type="button" (click)="removeSchema(schema)">删除</button>
+                  <button class="btn btn-sm btn-info" type="button" style="visibility: hidden">匹配规则</button>
+                </td>
+              </tr>
+              <tr *ngFor="let tb of schema.tables" [style.display]="schema.isShow?'':'none'">
+                <td><input type="checkbox" [(ngModel)]="tb.checked"></td>
+                <td align="right">table</td>
+                <td>{{tb.source_table_name}}</td>
+                <td>{{tb.target_table_name}}</td>
+                <td>
+                  <button class="btn btn-sm btn-danger" type="button" (click)="removeTable(tb)">删除</button>
+                  <button class="btn btn-sm btn-info" type="button" (click)="confColumn(tb, schema)">匹配规则</button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="!loading3 && ruleList.length === 0">
+              <tr style="background-color: #fff;">
+                <td colspan="5" class="txt-align-center"><b>No Data!</b></td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="loading3">
+              <tr style="background-color: #fff;">
+                <td colspan="5" class="txt-align-center"><b>Loading......</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+  </div>
+</div>
+<!-- 自动匹配弹窗 -->
+<div bsModal #viewModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-rule-md">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">请选择要自动匹配的表</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="viewModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="apply-to-other">
+          <h5>schema: {{selSourceSchema?.user_name}} - {{selTargetSchema?.user_name}}</h5>
+          <div class="rules-list">
+            <table class="table table-responsive">
+              <colgroup>
+                <col style="width: 10%">
+                <col style="width: 45%">
+                <col style="width: 45%">
+              </colgroup>
+              <tbody>
+              <tr class="schema-bar">
+                <td><input type="checkbox" title="全选" [(ngModel)]="tableAll" (change)="selectTableAll()"></td>
+                <td>源端TABLE</td>
+                <td>目标端TABLE</td>
+              </tr>
+              </tbody>
+              <tbody>
+                <tr *ngFor="let tb of autoTableList;trackBy:ruleTrack">
+                  <td><input type="checkbox" [(ngModel)]="tb.checked" (change)="selectTableOne(tb)"></td>
+                  <td>{{tb.sTname}}</td>
+                  <td>{{tb.tTname}}</td>
+                </tr>
+                <tr *ngIf="!loadingTable && autoTableList.length === 0">
+                  <td colspan="3" class="txt-align-center"><b>No Data!</b></td>
+                </tr>
+                <tr *ngIf="loadingTable">
+                  <td colspan="3" class="txt-align-center"><b>Loading......</b></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <div class="pull-right">
+          <button class="btn btn-sm btn-primary" type="button" [disabled]="autoTableList.length===0 || isSaving" (click)="saveAutoList()">保存</button>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 导入配置信息 -->
+<app-import-conf #importConf (onSave)="saveCustomTables($event)"></app-import-conf>

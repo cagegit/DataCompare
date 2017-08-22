@@ -1,0 +1,207 @@
+<div class="link-menu">
+   <button type="button" class="btn btn-primary" (click)="createConnection();">新建数据库连接</button>
+</div>
+<div class="rules-info-list">
+  <table class="table table-responsive common-table">
+    <thead>
+      <tr>
+        <th style="width: 15%">数据库标示名</th>
+        <th style="width: 25%">数据库备注信息</th>
+        <th style="width: 15%">数据库类型</th>
+        <th style="width: 20%">IP地址</th>
+        <th style="width: 25%">管理</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of tableList;">
+        <td style="width: 15%">{{item.flag}}</td>
+        <td style="width: 25%">{{item.desc}}</td>
+        <td style="width: 15%">{{item.type | sqlType}}</td>
+        <td style="width: 20%">{{item.ip}}</td>
+        <td style="width: 25%">
+          <a class="btn btn-sm btn-warning" (click)="editItem(item)">修改</a>
+          <a class="btn btn-sm btn-info" (click)="viewItem(item)">查看</a>
+          <a class="btn btn-sm btn-danger" (click)="deleteItem(item)">删除</a>
+        </td>
+      </tr>
+      <tr *ngIf="tableList.length===0">
+        <td colspan="5" class="txt-align-center">No Data!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<!-- 新增连接信息弹窗 -->
+<div bsModal #mdModal="bs-modal" (onHide)="modelForm.reset();isPwdChange=false;" (onHidden)="closeLinkModal()" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">{{viewTitle}}</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="mdModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <form #modelForm="ngForm" novalidate>
+          <table class="table nc-table">
+            <tr>
+              <td><i class="text-danger">*</i>数据库标识名：</td>
+              <td>
+                <div class="form-group">
+                  <input class="form-control" name="flag" type="text" [(ngModel)]="model.flag" #flag="ngModel" required maxlength="30">
+                  <div *ngIf="flag.errors && (flag.dirty || flag.touched)" class="alert alert-danger">
+                    <div [hidden]="!flag.errors.required">
+                      数据库标识名不能为空
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><i class="text-danger">*</i>数据库备注信息：</td>
+              <td>
+                <div class="form-group">
+                  <input class="form-control" name="desc" type="text" required [(ngModel)]="model.desc" #desc="ngModel" maxlength="30">
+                  <div *ngIf="desc.errors && (desc.dirty || desc.touched)" class="alert alert-danger">
+                    <div [hidden]="!desc.errors.required">
+                      数据库备注信息不能为空
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>数据库类型：</td>
+              <td>
+                <div class="form-group">
+                  <select class="form-control" name="type" [(ngModel)]="model.type">
+                    <option *ngFor="let v of sqls" [value]="v.value">{{v.name}}</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>数据库IP：</td>
+              <td>
+                <div class="form-group">
+                  <input class="form-control" type="text" name="ip" placeholder="172.16.1.1:1521" [(ngModel)]="model.ip" #ip="ngModel" required maxlength="30">
+                  <div *ngIf="ip.errors && (ip.dirty || ip.touched)" class="alert alert-danger">
+                    <div [hidden]="!ip.errors.required">
+                      数据库IP不能为空
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>数据库实例名：</td>
+              <td>
+                <div class="form-group">
+                  <input class="form-control" type="text" name="insName" [(ngModel)]="model.insName" #insName="ngModel" required maxlength="30">
+                  <div *ngIf="insName.errors && (insName.dirty || insName.touched)" class="alert alert-danger">
+                    <div [hidden]="!insName.errors.required">
+                      数据库实例名不能为空
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>数据库用户名：</td>
+              <td>
+                <div class="form-group">
+                  <input class="form-control" type="text" name="dbUname" [(ngModel)]="model.dbUname" #dbUname="ngModel" required maxlength="20">
+                  <div *ngIf="dbUname.errors && (dbUname.dirty || dbUname.touched)" class="alert alert-danger">
+                    <div [hidden]="!dbUname.errors.required">
+                      数据库用户名不能为空
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>数据库密码：</td>
+              <td>
+                <div class="form-group">
+                  <input class="form-control" type="password" name="dbPwd"  [(ngModel)]="model.dbPwd" #dbPwd="ngModel" (focus)="changePwd(model)" required maxlength="20">
+                  <div *ngIf="dbPwd.errors && (dbPwd.dirty || dbPwd.touched)" class="alert alert-danger">
+                    <div [hidden]="!dbPwd.errors.required">
+                      数据库密码不能为空
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <!--<tr>-->
+              <!--<td>确认密码：</td>-->
+              <!--<td>-->
+                <!--<div class="form-group">-->
+                  <!--<input class="form-control" type="password" name="dbConPwd" [(ngModel)]="model.dbConPwd" validateEqual="dbPwd" reverse="false" #dbConPwd="ngModel" (focus)="changePwd(model)" required maxlength="20">-->
+                  <!--<div [hidden]="(dbConPwd.valid || dbConPwd.pristine)" class="alert alert-danger">-->
+                      <!--<div>-->
+                        <!--数据库密码与确认密码不一致-->
+                      <!--</div>-->
+                  <!--</div>-->
+                <!--</div>-->
+              <!--</td>-->
+            <!--</tr>-->
+          </table>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-info" [disabled]="modelForm.form.invalid || isTesting" (click)="testDbInfo()">{{testTxt}}</button>
+        <button type="button" class="btn btn-sm btn-primary" *ngIf="!isEdit" [disabled]="modelForm.form.invalid" (click)="saveLinkInfo()" >保存</button>
+        <button type="button" class="btn btn-sm btn-primary" *ngIf="isEdit" [disabled]="modelForm.form.invalid" (click)="updateLinkInfo()" >修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 查看连接信息弹窗 -->
+<div bsModal #viewModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header modal-header-info">
+        <div class="bg-success">
+          <h4 class="modal-title pull-left">查看数据库连接</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="viewModal.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <form #vwForm="ngForm">
+          <table class="table nc-table">
+            <tr>
+              <td><i class="text-danger">*</i>数据库标示名：</td>
+              <td>{{model.flag}}</td>
+            </tr>
+            <tr>
+              <td><i class="text-danger">*</i>数据库备注信息：</td>
+              <td>{{model.desc}}</td>
+            </tr>
+            <tr>
+              <td>数据库类型：</td>
+              <td>{{changeType(model.type)}}</td>
+            </tr>
+            <tr>
+              <td>数据库IP：</td>
+              <td>{{model.ip}}</td>
+            </tr>
+            <tr>
+              <td>数据库实例名：</td>
+              <td>{{model.insName}}</td>
+            </tr>
+            <tr>
+              <td>数据库用户名：</td>
+              <td>{{model.dbUname}}</td>
+            </tr>
+          </table>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-primary" [disabled]="isTesting" (click)="testDbInfo()">{{testTxt}}</button>
+      </div>
+    </div>
+  </div>
+</div>
